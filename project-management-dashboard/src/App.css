@@ -1,0 +1,132 @@
+/* src/App.css */
+
+/* Tailwind CSS directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles can go here */
+
+/* Basic body styles for full height and font */
+body {
+    margin: 0;
+    font-family: 'Vazirmatn', 'Inter', sans-serif; /* Fallback to Inter if Vazirmatn is not loaded */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #f3f4f6; /* Light gray background */
+    color: #333;
+}
+
+/* General container styling for centering content */
+.App {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh; /* Ensure it takes full viewport height */
+    padding: 1.5rem; /* Padding around the main content */
+}
+
+/* Form grid layout for better organization */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr 1fr; /* Two columns on medium screens and up */
+    }
+    .form-grid .md\:col-span-2 {
+        grid-column: span 2; /* Make specific elements span two columns */
+    }
+}
+
+/* Edit form specific styling */
+.edit-form {
+    border: 1px solid #e5e7eb;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background-color: #f9fafb;
+    margin-top: 1rem;
+}
+
+/* Table styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+th, td {
+    text-align: right; /* Align text to the right for RTL languages */
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+th {
+    background-color: #f3f4f6;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+tbody tr:last-child {
+    border-bottom: none;
+}
+
+/* Checkbox label styling */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #4b5563;
+}
+
+/* DatePicker specific overrides */
+.rmdp-container {
+    width: 100%; /* Make DatePicker container take full width */
+}
+
+.rmdp-input {
+    width: 100%; /* Ensure the input field inside DatePicker also takes full width */
+    box-sizing: border-box; /* Include padding and border in the element's total width */
+}
+
+/* RTL specific adjustments for spacing */
+[dir="rtl"] .space-x-4 > *:not(:last-child) {
+    margin-right: 1rem;
+    margin-left: 0;
+}
+
+[dir="rtl"] .space-x-4 > *:last-child {
+    margin-left: 0;
+}
+
+/* Ensure correct alignment for buttons in flex containers in RTL */
+[dir="rtl"] .flex.gap-2 {
+    flex-direction: row-reverse; /* Reverse order for RTL if needed */
+}
+
+/* Adjust text alignment for specific elements if needed for RTL */
+[dir="rtl"] .text-right {
+    text-align: right;
+}
+
+[dir="rtl"] .text-left {
+    text-align: left;
+}
+
+/* Adjust placeholder text direction for RTL */
+[dir="rtl"] input::placeholder {
+    text-align: right;
+}
+
+/* Adjust select arrow position for RTL, if default is problematic */
+[dir="rtl"] select {
+    background-position: left 0.75rem center; /* Move arrow to left */
+    padding-left: 2.5rem; /* Add padding on left to make space for arrow */
+    padding-right: 0.75rem; /* Reduce right padding */
+}
