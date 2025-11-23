@@ -1,0 +1,704 @@
+openapi: 3.0.0
+info:
+  title: Project Dashboard API
+  version: 1.0.0
+  description: API documentation for the project dashboard backend.
+servers:
+  - url: http://localhost/api
+    description: Local development server
+
+tags:
+  - name: Users
+    description: User management and login
+  - name: Tasks
+    description: Task management APIs
+  - name: ReportSubCategories
+    description: Report Sub-Category management APIs
+  - name: ReportLinks
+    description: Report Link management APIs
+
+paths:
+
+  /users/login:
+    post:
+      tags: [Users]
+      summary: User login
+      description: Logs in a user by username and password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - appId
+                - username
+                - password
+              properties:
+                appId:
+                  type: string
+                  description: Application ID
+                username:
+                  type: string
+                  description: User's username
+                password:
+                  type: string
+                  description: User's password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  role:
+                    type: string
+                  username:
+                    type: string
+                  timeTableUrl:
+                    type: string
+                    nullable: true
+        '400':
+          description: Missing username or password
+        '401':
+          description: Invalid username or password
+        '500':
+          description: Server error during login
+
+  /users/createUser:
+    post:
+      tags: [Users]
+      summary: Create a new user
+      description: Creates a new user with hashed password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - appId
+                - username
+                - password
+                - role
+              properties:
+                appId:
+                  type: string
+                  description: Application ID
+                username:
+                  type: string
+                password:
+                  type: string
+                role:
+                  type: string
+                  enum: [admin, worker]
+                timeTableUrl:
+                  type: string
+                  nullable: true
+      responses:
+        '201':
+          description: User created successfully
+        '400':
+          description: Missing required fields
+        '409':
+          description: User with username already exists
+        '500':
+          description: Server error creating user
+
+  /users/updateUser:
+    post:
+      tags: [Users]
+      summary: Update existing user
+      description: Updates user info and optionally password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - appId
+                - userId
+                - username
+                - role
+              properties:
+                appId:
+                  type: string
+                userId:
+                  type: string
+                  description: MongoDB ObjectId of user
+                username:
+                  type: string
+                password:
+                  type: string
+                  nullable: true
+                role:
+                  type: string
+                  enum: [admin, worker]
+                isActive:
+                  type: boolean
+                timeTableUrl:
+                  type: string
+                  nullable: true
+      responses:
+        '200':
+          description: User updated successfully
+        '400':
+          description: Missing required fields
+        '404':
+          description: User not found
+        '500':
+          description: Server error updating user
+
+  /users/{appId}/{userId}:
+    delete:
+      tags: [Users]
+      summary: Delete a user
+      parameters:
+        - in: path
+          name: appId
+          schema:
+            type: string
+          required: true
+          description: Application ID
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+          description: User ID (MongoDB ObjectId)
+      responses:
+        '200':
+          description: User deleted successfully
+        '404':
+          description: User not found
+        '500':
+          description: Server error deleting user
+
+  /users/{appId}/{userId}/toggle-active:
+    put:
+      tags: [Users]
+      summary: Toggle user's active status
+      parameters:
+        - in: path
+          name: appId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - isActive
+              properties:
+                isActive:
+                  type: boolean
+      responses:
+        '200':
+          description: User active status updated
+        '400':
+          description: Invalid isActive value
+        '404':
+          description: User not found
+        '500':
+          description: Server error updating status
+
+  /users/{appId}:
+    get:
+      tags: [Users]
+      summary: Get all users
+      parameters:
+        - in: path
+          name: appId
+          schema:
+            type: string
+          required: true
+          description: Application ID
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    username:
+                      type: string
+                    role:
+                      type: string
+                    isActive:
+                      type: boolean
+                    timeTableUrl:
+                      type: string
+                      nullable: true
+                    createdAt:
+                      type: string
+                      format: date-time
+        '500':
+          description: Server error fetching users
+
+  /tasks/{appId}:
+    get:
+      tags: [Tasks]
+      summary: Get all tasks
+      parameters:
+        - in: path
+          name: appId
+          schema:
+            type: string
+          required: true
+          description: Application ID
+      responses:
+        '200':
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    fa:
+                      type: string
+                    en:
+                      type: string
+                    ownerId:
+                      type: string
+                    startDate:
+                      type: string
+                      format: date-time
+                    endDate:
+                      type: string
+                      format: date-time
+                    isComplete:
+                      type: boolean
+        '500':
+          description: Server error fetching tasks
+
+    post:
+      tags: [Tasks]
+      summary: Add a new task
+      parameters:
+        - in: path
+          name: appId
+          required: true
+          schema:
+            type: string
+          description: Application ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fa
+                - en
+                - ownerId
+                - startDate
+                - endDate
+              properties:
+                fa:
+                  type: string
+                en:
+                  type: string
+                ownerId:
+                  type: string
+                startDate:
+                  type: string
+                  format: date-time
+                endDate:
+                  type: string
+                  format: date-time
+                isComplete:
+                  type: boolean
+      responses:
+        '201':
+          description: Task added successfully
+        '400':
+          description: Missing required fields
+        '500':
+          description: Server error adding task
+
+  /tasks/{appId}/{taskId}:
+    put:
+      tags: [Tasks]
+      summary: Update a task
+      parameters:
+        - in: path
+          name: appId
+          required: true
+          schema:
+            type: string
+          description: Application ID
+        - in: path
+          name: taskId
+          required: true
+          schema:
+            type: string
+          description: Task ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fa
+                - en
+                - ownerId
+                - startDate
+                - endDate
+              properties:
+                fa:
+                  type: string
+                en:
+                  type: string
+                ownerId:
+                  type: string
+                startDate:
+                  type: string
+                  format: date-time
+                endDate:
+                  type: string
+                  format: date-time
+                isComplete:
+                  type: boolean
+      responses:
+        '200':
+          description: Task updated successfully
+        '400':
+          description: Missing required fields
+        '404':
+          description: Task not found
+        '500':
+          description: Server error updating task
+
+    delete:
+      tags: [Tasks]
+      summary: Delete a task
+      parameters:
+        - in: path
+          name: appId
+          required: true
+          schema:
+            type: string
+          description: Application ID
+        - in: path
+          name: taskId
+          required: true
+          schema:
+            type: string
+          description: Task ID
+      responses:
+        '200':
+          description: Task deleted successfully
+        '404':
+          description: Task not found
+        '500':
+          description: Server error deleting task
+
+  /report-sub-categories/{appId}:
+    get:
+      tags: [ReportSubCategories]
+      summary: Get all report sub-categories
+      parameters:
+        - in: path
+          name: appId
+          required: true
+          schema:
+            type: string
+          description: Application ID
+      responses:
+        '200':
+          description: List of report sub-categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    fa:
+                      type: string
+                    en:
+                      type: string
+        '500':
+          description: Server error
+
+    post:
+      tags: [ReportSubCategories]
+      summary: Add a new report sub-category
+      parameters:
+        - in: path
+          name: appId
+          required: true
+          schema:
+            type: string
+          description: Application ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fa
+                - en
+              properties:
+                fa:
+                  type: string
+                en:
+                  type: string
+      responses:
+        '201':
+          description: Sub-category added successfully
+        '400':
+          description: Missing required fields
+        '500':
+          description: Server error
+
+  /report-sub-categories/{appId}/{subCategoryId}:
+    put:
+      tags: [ReportSubCategories]
+      summary: Update a report sub-category
+      parameters:
+        - in: path
+          name: appId
+          required: true
+          schema:
+            type: string
+          description: Application ID
+        - in: path
+          name: subCategoryId
+          required: true
+          schema:
+            type: string
+          description: Sub-category ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fa
+                - en
+              properties:
+                fa:
+                  type: string
+                en:
+                  type: string
+      responses:
+        '200':
+          description: Sub-category updated successfully
+        '400':
+          description: Missing required fields
+        '404':
+          description: Sub-category not found
+        '500':
+          description: Server error
+
+    delete:
+      tags: [ReportSubCategories]
+      summary: Delete a report sub-category
+      parameters:
+        - in: path
+          name: appId
+          required: true
+          schema:
+            type: string
+          description: Application ID
+        - in: path
+          name: subCategoryId
+          required: true
+          schema:
+            type: string
+          description: Sub-category ID
+      responses:
+        '200':
+          description: Sub-category deleted successfully
+        '404':
+          description: Sub-category not found
+        '500':
+          description: Server error
+
+  /report-links/{appId}:
+    get:
+      tags: [ReportLinks]
+      summary: Get all report links
+      parameters:
+        - in: path
+          name: appId
+          required: true
+          schema:
+            type: string
+          description: Application ID
+      responses:
+        '200':
+          description: List of report links
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    nameFa:
+                      type: string
+                    nameEn:
+                      type: string
+                    url:
+                      type: string
+                    ownerId:
+                      type: string
+                    reportCategory:
+                      type: string
+                    reportSubCategory:
+                      type: string
+        '500':
+          description: Server error
+
+    post:
+      tags: [ReportLinks]
+      summary: Add a new report link
+      parameters:
+        - in: path
+          name: appId
+          required: true
+          schema:
+            type: string
+          description: Application ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nameFa
+                - nameEn
+                - url
+                - ownerId
+                - reportCategory
+                - reportSubCategory
+              properties:
+                nameFa:
+                  type: string
+                nameEn:
+                  type: string
+                url:
+                  type: string
+                ownerId:
+                  type: string
+                reportCategory:
+                  type: string
+                reportSubCategory:
+                  type: string
+      responses:
+        '201':
+          description: Report link added successfully
+        '400':
+          description: Missing required fields
+        '500':
+          description: Server error
+
+  /report-links/{appId}/{linkId}:
+    put:
+      tags: [ReportLinks]
+      summary: Update a report link
+      parameters:
+        - in: path
+          name: appId
+          required: true
+          schema:
+            type: string
+          description: Application ID
+        - in: path
+          name: linkId
+          required: true
+          schema:
+            type: string
+          description: Report link ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nameFa
+                - nameEn
+                - url
+                - ownerId
+                - reportCategory
+                - reportSubCategory
+              properties:
+                nameFa:
+                  type: string
+                nameEn:
+                  type: string
+                url:
+                  type: string
+                ownerId:
+                  type: string
+                reportCategory:
+                  type: string
+                reportSubCategory:
+                  type: string
+      responses:
+        '200':
+          description: Report link updated successfully
+        '400':
+          description: Missing required fields
+        '404':
+          description: Report link not found
+        '500':
+          description: Server error
+
+    delete:
+      tags: [ReportLinks]
+      summary: Delete a report link
+      parameters:
+        - in: path
+          name: appId
+          required: true
+          schema:
+            type: string
+          description: Application ID
+        - in: path
+          name: linkId
+          required: true
+          schema:
+            type: string
+          description: Report link ID
+      responses:
+        '200':
+          description: Report link deleted successfully
+        '404':
+          description: Report link not found
+        '500':
+          description: Server error
